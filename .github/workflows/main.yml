@@ -6,7 +6,6 @@ on:
       - main
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCE_INSTANCE: letsrecordit-server
   GCE_INSTANCE_ZONE: asia-northeast3-a
 
@@ -27,7 +26,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
         with:
           version: '>= 363.0.0'
-          project_id: $PROJECT_ID
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       # Configure Docker to use the gcloud command-line tool as a credential
       # helper for authentication
