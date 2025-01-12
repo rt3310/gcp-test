@@ -7,7 +7,7 @@ on:
 
 env:
   GCE_INSTANCE: letsrecordit-server
-  GCE_INSTANCE_ZONE: asia-northeast3-a
+  GCE_INSTANCE_ZONE: asia-northeast3-c
 
 jobs:
   setup-build-publish-deploy:
