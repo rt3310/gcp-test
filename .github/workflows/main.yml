@@ -48,7 +48,6 @@ jobs:
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker stop letsrecordit-server
             docker rm letsrecordit-server
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
