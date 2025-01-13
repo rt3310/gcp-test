@@ -26,3 +26,10 @@ jobs:
 
       - name: Build with Gradle Wrapper
         run: ./gradlew clean build
+
+      - name: Docker build
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t letsrecordit .
+          docker tag letsrecordit rt3310/letsrecordit:${GITHUB_SHA::7}
+          docker push rt3310/letsrecordit:${GITHUB_SHA::7}
