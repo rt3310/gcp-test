@@ -30,7 +30,7 @@ jobs:
       - name: Docker build
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t letsrecordit .
+          docker build -t ${{ secrets.DOCKER_REPOSITORY }} .
           docker tag ${{ secrets.DOCKER_REPOSITORY }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${GITHUB_SHA::7}
 
