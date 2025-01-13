@@ -31,5 +31,18 @@ jobs:
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t letsrecordit .
-          docker tag letsrecordit rt3310/letsrecordit:${GITHUB_SHA::7}
-          docker push rt3310/letsrecordit:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_REPOSITORY }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${GITHUB_SHA::7}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${GITHUB_SHA::7}
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: 34.22.106.34
+          username: ${{ secrets.GCP_SSH_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          envs: GITHUB_SHA
+          script: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker build -t letsrecordit .
+            docker tag ${{ secrets.DOCKER_REPOSITORY }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${GITHUB_SHA::7} letsrecordit
+            sudo docker-compose up -d
