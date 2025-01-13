@@ -18,30 +18,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - id: 'auth'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - uses: google-github-actions/setup-gcloud@v2
-        with:
-          version: '>= 363.0.0'
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Configure SSH
+        run: |-
+          mkdir -p ~/.ssh
+          echo ${{ secrets.GCP_SSH_PRIVATE_KEY }} > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} > ~/.ssh/known_hosts
 
-      # Configure Docker to use the gcloud command-line tool as a credential
-      # helper for authentication
-      - run: |-
-          gcloud --quiet auth configure-docker
-      # Build the Docker image
-      - name: Build
+      - name: Deploy code and run Docker container
         run: |-
-          docker build --tag "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest" .
-      # Push the Docker image to Google Container Registry
-      - name: Publish
-        run: |-
-          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest"
-      - name: Deploy
-        run: |-
-          gcloud compute instances update-container "$GCE_INSTANCE" \
-            --zone "$GCE_INSTANCE_ZONE" \
-            --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:latest"
+          ssh ${{ secrets.GCP_SSH_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
+          /home/btac3310/deploy.sh
+          EOF
+
+      # - id: 'auth'
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      # - uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     version: '>= 363.0.0'
+      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # # Configure Docker to use the gcloud command-line tool as a credential
+      # # helper for authentication
+      # - run: |-
+      #     gcloud --quiet auth configure-docker
+      # # Build the Docker image
+      # - name: Build
+      #   run: |-
+      #     docker build --tag "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest" .
+      # # Push the Docker image to Google Container Registry
+      # - name: Publish
+      #   run: |-
+      #     docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest"
+      # - name: Deploy
+      #   run: |-
+      #     gcloud compute instances update-container "$GCE_INSTANCE" \
+      #       --zone "$GCE_INSTANCE_ZONE" \
+      #       --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:latest"
