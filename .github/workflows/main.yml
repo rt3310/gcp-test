@@ -5,56 +5,24 @@ on:
     branches:
       - main
 
-env:
-  GCE_INSTANCE: letsrecordit-server
-  GCE_INSTANCE_ZONE: asia-northeast3-c
 
 jobs:
   setup-build-publish-deploy:
-    name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
-      - name: Configure SSH
-        run: |-
-          mkdir -p ~/.ssh
-          echo ${{ secrets.GCP_SSH_PRIVATE_KEY }} > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} > ~/.ssh/known_hosts
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: Deploy code and run Docker container
-        run: |-
-          ssh ${{ secrets.GCP_SSH_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
-          /home/btac3310/deploy.sh
-          EOF
-
-      # - id: 'auth'
-      #   uses: google-github-actions/auth@v2
-      #   with:
-      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      # - uses: google-github-actions/setup-gcloud@v2
-      #   with:
-      #     version: '>= 363.0.0'
-      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      # # Configure Docker to use the gcloud command-line tool as a credential
-      # # helper for authentication
-      # - run: |-
-      #     gcloud --quiet auth configure-docker
-      # # Build the Docker image
-      # - name: Build
-      #   run: |-
-      #     docker build --tag "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest" .
-      # # Push the Docker image to Google Container Registry
-      # - name: Publish
-      #   run: |-
-      #     docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCE_INSTANCE-image:latest"
-      # - name: Deploy
-      #   run: |-
-      #     gcloud compute instances update-container "$GCE_INSTANCE" \
-      #       --zone "$GCE_INSTANCE_ZONE" \
-      #       --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:latest"
+      - name: Build with Gradle Wrapper
+        run: ./gradlew clean build
