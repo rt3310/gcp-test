@@ -48,7 +48,8 @@ jobs:
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
-            docker stop letsrecordit-server
-            docker rm letsrecordit-server
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
+            sudo docker stop letsrecordit-server
+            sudo docker rm letsrecordit-server
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
             sudo docker-compose up -d
